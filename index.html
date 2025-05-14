@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous App Builder (Simulation)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base font */
+        body { 
+            font-family: 'Inter', sans-serif; 
+        }
+        /* Custom animation for settings icon */
+        .animate-spin-slow { 
+            animation: spin 3s linear infinite; 
+        }
+        @keyframes spin { 
+            from { transform: rotate(0deg); } 
+            to { transform: rotate(360deg); } 
+        }
+        /* Styling for the logs container */
+        .log-container {
+            max-height: 15rem; /* 240px */
+            overflow-y: auto;
+            background-color: #f9fafb; /* Tailwind gray-50 */
+            border: 1px solid #e5e7eb; /* Tailwind gray-200 */
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            padding: 0.75rem; /* Tailwind p-3 */
+        }
+        .dark .log-container {
+            background-color: #374151; /* Tailwind dark:bg-gray-700 */
+            border-color: #4b5563; /* Tailwind dark:border-gray-600 */
+        }
+        /* Custom scrollbar for logs (Webkit browsers) */
+        .log-container::-webkit-scrollbar { 
+            width: 8px; 
+        }
+        .log-container::-webkit-scrollbar-track { 
+            background: #e5e7eb; /* Tailwind gray-200 */
+            border-radius: 10px; 
+        }
+        .dark .log-container::-webkit-scrollbar-track { 
+            background: #4b5563; /* Tailwind gray-600 */
+        }
+        .log-container::-webkit-scrollbar-thumb { 
+            background: #9ca3af; /* Tailwind gray-400 */
+            border-radius: 10px; 
+        }
+        .dark .log-container::-webkit-scrollbar-thumb { 
+            background: #6b7280; /* Tailwind gray-500 */
+        }
+        .log-container::-webkit-scrollbar-thumb:hover { 
+            background: #6b7280; /* Tailwind gray-500 */
+        }
+        .dark .log-container::-webkit-scrollbar-thumb:hover { 
+            background: #9ca3af; /* Tailwind gray-400 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 flex flex-col items-center justify-center min-h-screen p-4 selection:bg-indigo-500 selection:text-white">
+
+    <svg width="0" height="0" style="position:absolute; display:none;">
+        <defs>
+            <symbol id="icon-brain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v0A2.5 2.5 0 0 1 9.5 7h0A2.5 2.5 0 0 1 7 4.5v0A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 1 17 4.5v0A2.5 2.5 0 0 1 14.5 7h0A2.5 2.5 0 0 1 12 4.5v0A2.5 2.5 0 0 1 14.5 2Z"/><path d="M12 17.5A2.5 2.5 0 0 1 9.5 20v0a2.5 2.5 0 0 1-2.5-2.5h0A2.5 2.5 0 0 1 9.5 15v0A2.5 2.5 0 0 1 12 17.5Z"/><path d="M12 17.5A2.5 2.5 0 0 0 14.5 20v0a2.5 2.5 0 0 0 2.5-2.5h0A2.5 2.5 0 0 0 14.5 15v0A2.5 2.5 0 0 0 12 17.5Z"/><path d="M17 10.5A2.5 2.5 0 0 1 14.5 13v0a2.5 2.5 0 0 1-2.5-2.5h0A2.5 2.5 0 0 1 14.5 8v0a2.5 2.5 0 0 1 2.5 2.5Z"/><path d="M7 10.5A2.5 2.5 0 0 0 9.5 13v0a2.5 2.5 0 0 0 2.5-2.5h0A2.5 2.5 0 0 0 9.5 8v0a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M12 4.5V7"/><path d="M9.5 7H7"/><path d="M14.5 7h2.5"/><path d="M12 15v-2.5"/><path d="M9.5 15H7"/><path d="M14.5 15h2.5"/><path d="M14.5 13h-5"/><path d="M9.5 8H7.5c-.9 0-1.5.7-1.5 1.5v0c0 .8.7 1.5 1.5 1.5H7"/><path d="M14.5 8h1.5c.9 0 1.5.7 1.5 1.5v0c0 .8-.7 1.5-1.5 1.5H17"/></symbol>
+            <symbol id="icon-cpu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></symbol>
+            <symbol id="icon-lightbulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5C17.7 10.2 18 9 18 7c0-2.2-1.8-4-4-4S10 4.8 10 7c0 2 .3 3.2 1.5 4.5.8.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></symbol>
+            <symbol id="icon-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"></polyline></symbol>
+            <symbol id="icon-package" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></symbol>
+            <symbol id="icon-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></symbol>
+            <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 .25 1l-.01.44a2 2 0 0 1-2 2H2v.44a2 2 0 0 0 2 2v.18a2 2 0 0 1 1 1.73l.43.25a2 2 0 0 1 2 0l.15-.08a2 2 0 0 0 2.73.73l.22.38a2 2 0 0 0 .73-2.73l-.15-.1a2 2 0 0 1-.25-1l.01-.44a2 2 0 0 1 2-2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1-1-1.73l-.43-.25a2 2 0 0 1-2 0l-.15.08a2 2 0 0 0-2.73-.73l-.22-.38a2 2 0 0 0-.73 2.73l.15.1a2 2 0 0 1 .25 1l.01.44a2 2 0 0 1 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0 .73-2.73l-.15-.1a2 2 0 0 1-.25-1l.01-.44a2 2 0 0 1-2-2H12.22z"/><circle cx="12" cy="12" r="3"></circle></symbol>
+            <symbol id="icon-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></symbol>
+            <symbol id="icon-message-square" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></symbol>
+            <symbol id="icon-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></symbol>
+            <symbol id="icon-shopping-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></symbol>
+            <symbol id="icon-bar-chart-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></symbol>
+            <symbol id="icon-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></symbol>
+            <symbol id="icon-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></symbol>
+            <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+            <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></symbol>
+        </defs>
+    </svg>
+
+    <div id="app-container" class="w-full max-w-3xl bg-white dark:bg-gray-800 shadow-2xl rounded-xl overflow-hidden transition-colors duration-300">
+        <header class="bg-indigo-700 dark:bg-indigo-800 p-6 text-white text-center transition-colors duration-300">
+            <h1 class="text-3xl font-bold flex items-center justify-center">
+                <svg class="w-9 h-9 mr-3"><use xlink:href="#icon-brain"></use></svg>
+                AI App Inventor
+            </h1>
+            <p class="text-indigo-200 dark:text-indigo-300 mt-1 transition-colors duration-300">Simulating Autonomous App Creation</p>
+        </header>
+
+        <main id="main-content" class="p-6 md:p-8 min-h-[400px] flex flex-col justify-center transition-colors duration-300">
+            </main>
+
+        <div id="logs-section" class="p-4 md:p-6 border-t border-gray-200 dark:border-gray-600 transition-colors duration-300" style="display: none;">
+            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">AI Process Logs:</h3>
+            <div id="logs-content" class="text-xs text-gray-600 dark:text-gray-400 space-y-1 font-mono log-container transition-colors duration-300">
+                </div>
+        </div>
+
+        <footer class="bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-600 p-4 text-center transition-colors duration-300">
+            <p class="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                This is a conceptual simulation. Actual autonomous app development is highly complex.
+            </p>
+        </footer>
+    </div>
+
+    <button id="darkModeToggle" class="fixed bottom-4 right-4 md:bottom-6 md:right-6 p-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" title="Toggle Dark Mode">
+        <svg class="w-5 h-5 hidden dark:inline-block"><use xlink:href="#icon-sun"></use></svg> <svg class="w-5 h-5 inline-block dark:hidden"><use xlink:href="#icon-moon"></use></svg> </button>
+
+    <script>
+    // --- Application State and Configuration ---
+
+    // Mock data for app ideas
+    const APP_IDEAS_BANK = [
+      { name: "EcoTrack", description: "A personal carbon footprint tracker with gamified challenges and community features.", category: "Sustainability", icon: "icon-package", iconColor: "text-green-500" },
+      { name: "MindGarden", description: "A guided meditation and mindfulness app with personalized AI-driven sessions.", category: "Wellness", icon: "icon-brain", iconColor: "text-blue-500" },
+      { name: "SkillSwap", description: "A platform for local skill-sharing and bartering services.", category: "Community", icon: "icon-users", iconColor: "text-purple-500" },
+      { name: "StoryForge", description: "An AI-assisted collaborative storytelling platform for creative writers.", category: "Creativity", icon: "icon-lightbulb", iconColor: "text-yellow-500" },
+      { name: "LocalEats", description: "A hyper-local food discovery app focusing on small, independent restaurants and street food vendors.", category: "Food", icon: "icon-shopping-cart", iconColor: "text-red-500" },
+      { name: "CodeBuddy", description: "An AI pair programmer that helps debug code and suggests improvements.", category: "Developer Tools", icon: "icon-code", iconColor: "text-gray-500" }
+    ];
+
+    // Mock data for app features
+    const FEATURE_BANK = [
+      { id: "auth", name: "User Authentication", description: "Secure login, registration, and profile management.", icon: "icon-users" },
+      { id: "realtime_chat", name: "Real-time Chat", description: "Instant messaging capabilities between users.", icon: "icon-message-square" },
+      { id: "push_notifications", name: "Push Notifications", description: "Alerts and updates for users.", icon: "icon-zap" },
+      { id: "payment_gateway", name: "Payment Gateway", description: "Integration for processing payments.", icon: "icon-shopping-cart" },
+      { id: "ai_assistant", name: "AI Assistant", description: "Intelligent in-app assistance or content generation.", icon: "icon-brain" },
+      { id: "gamification", name: "Gamification", description: "Points, badges, and leaderboards to engage users.", icon: "icon-bar-chart-2" },
+      { id: "image_upload", name: "Image Upload & Storage", description: "Allow users to upload and store images.", icon: "icon-image" },
+      { id: "admin_panel", name: "Admin Panel", description: "Dashboard for app management and analytics.", icon: "icon-settings" },
+      { id: "data_encryption", name: "Data Encryption", description: "End-to-end encryption for sensitive data.", icon: "icon-shield" }
+    ];
+
+    // Detailed steps for the simulated build process
+    const DETAILED_BUILD_STEPS = [
+        "[ANALYSIS] Parsing initial app requirements...",
+        "[PLANNING] Selecting appropriate (simulated) tech stack: MERN + AI services...",
+        "[SETUP] Initializing version control (Git)...",
+        "[SETUP] Configuring virtualized development environment (Docker)...",
+        "[DATABASE] Designing NoSQL schema for user profiles and app data...",
+        "[DATABASE] Provisioning mock cloud database instance (MongoDB Atlas simulated)...",
+        "[BACKEND] Scaffolding RESTful API endpoints (Node.js/Express)...",
+        "[BACKEND] Implementing JWT-based user authentication logic...",
+        "[BACKEND] Developing core data models and Mongoose ORM integration...",
+        "[AI-CORE] Integrating placeholder for AI content generation module...",
+        "[FRONTEND] Wireframing key user interfaces (Figma simulated)...",
+        "[FRONTEND] Generating responsive UI components with Tailwind CSS...",
+        "[FRONTEND] Implementing client-side routing and state management (SPA concept)...",
+        "[FEATURE DEV] Building user registration and login forms...",
+        "[FEATURE DEV] Developing main dashboard layout and widgets...",
+        "[FEATURE DEV] Implementing [Core Feature 1] module backend logic...",
+        "[FEATURE DEV] Connecting [Core Feature 1] frontend to API...",
+        "[INTEGRATION] Setting up mock third-party API for [e.g., Maps/Payments]...",
+        "[TESTING] Writing unit tests for authentication service (Jest/Mocha simulated)...",
+        "[TESTING] Performing E2E tests for user workflows (Cypress simulated)...",
+        "[SECURITY] Implementing input validation and sanitization...",
+        "[SECURITY] Adding basic rate limiting to API endpoints...",
+        "[OPTIMIZATION] Minifying frontend assets (JS, CSS)...",
+        "[DEVOPS] Creating Dockerfile for containerization...",
+        "[DEVOPS] Setting up basic CI/CD pipeline script (GitHub Actions simulated)...",
+        "[DEPLOY] Compiling application into a distributable package...",
+        "[DEPLOY] Pushing build to mock staging environment...",
+        "[QUALITY] Running automated UI consistency checks...",
+        "[FINALIZING] Generating documentation stubs...",
+        "[READY] App blueprint and initial build prototype ready for review."
+    ];
+
+    // --- Global State Variables ---
+    let currentStage = 'IDLE'; // Possible stages: IDLE, IDEATION, SPECIFICATION, BUILDING, READY
+    let currentAppIdea = null;
+    let selectedAppFeatures = [];
+    let currentBuildProgress = 0;
+    let appBuildLogs = [];
+    let appError = null;
+    let buildProcessInterval = null; // To store the interval ID for the build process
+
+    // --- DOM Element References ---
+    const mainContentElement = document.getElementById('main-content');
+    const logsSectionElement = document.getElementById('logs-section');
+    const logsContentElement = document.getElementById('logs-content');
+    const darkModeToggleButton = document.getElementById('darkModeToggle');
+
+    // --- Utility Functions ---
+
+    // Gets random items from an array
+    const getRandomItemsFromArray = (arr, num) => {
+        const shuffledArray = [...arr].sort(() => 0.5 - Math.random());
+        return shuffledArray.slice(0, num);
+    };
+
+    // Creates an SVG icon string using <use> tag for SVG sprites
+    const createIconSVGString = (iconId, classes = "w-6 h-6") => `<svg class="${classes}" aria-hidden="true"><use xlink:href="#${iconId}"></use></svg>`;
+
+    // Adds a log message to the UI
+    const addLogMessage = (message) => {
+        appBuildLogs.push(message);
+        const pElement = document.createElement('p');
+        pElement.textContent = message;
+        logsContentElement.appendChild(pElement);
+        logsContentElement.scrollTop = logsContentElement.scrollHeight; // Auto-scroll to the latest log
+    };
+
+    // Clears all log messages from the UI
+    const clearLogMessages = () => {
+        appBuildLogs = [];
+        logsContentElement.innerHTML = '';
+    };
+    
+    // Updates the application stage and re-renders content
+    const updateApplicationStage = (newStage) => {
+        currentStage = newStage;
+        renderCurrentStageContent(); // Render the UI for the new stage
+
+        // Trigger stage-specific processing logic
+        if (newStage === 'SPECIFICATION' && currentAppIdea) {
+            initiateSpecificationProcess();
+        } else if (newStage === 'BUILDING' && currentAppIdea) {
+            // Start build process if not already running or completed for the current idea
+            if (currentBuildProgress >= 100 || buildProcessInterval === null) {
+                currentBuildProgress = 0; // Reset progress for a new build
+                if (buildProcessInterval) clearInterval(buildProcessInterval); // Clear any existing interval
+                buildProcessInterval = null;
+                initiateBuildProcess(); 
+            }
+        }
+    };
+
+    // --- Core Application Logic Functions ---
+
+    // Handles the start of the app invention process
+    const handleStartInventionProcess = () => {
+        appError = null;
+        clearLogMessages();
+        addLogMessage('[AI Log] Initiating app invention sequence...');
+        currentAppIdea = null;
+        selectedAppFeatures = [];
+        currentBuildProgress = 0;
+        if (buildProcessInterval) clearInterval(buildProcessInterval);
+        buildProcessInterval = null;
+
+        logsSectionElement.style.display = 'block'; // Show logs section
+        updateApplicationStage('IDEATION');
+
+        setTimeout(() => {
+            const idea = getRandomItemsFromArray(APP_IDEAS_BANK, 1)[0];
+            currentAppIdea = idea;
+            addLogMessage(`[AI Log] New App Concept Generated: ${idea.name} - ${idea.category}`);
+            updateApplicationStage('SPECIFICATION');
+        }, 2000); // Simulate time for ideation
+    };
+
+    // Handles the specification phase
+    const initiateSpecificationProcess = () => {
+        if (currentStage === 'SPECIFICATION' && currentAppIdea) {
+            addLogMessage(`[AI Log] Analyzing requirements for ${currentAppIdea.name}...`);
+            setTimeout(() => {
+                const numFeatures = Math.floor(Math.random() * 3) + 3; // Select 3 to 5 features
+                const features = getRandomItemsFromArray(FEATURE_BANK, numFeatures);
+                selectedAppFeatures = features;
+                addLogMessage(`[AI Log] Core features identified: ${features.map(f => f.name).join(', ')}`);
+                updateApplicationStage('BUILDING');
+            }, 2000); // Simulate time for specification
+        }
+    };
+
+    // Handles the building phase
+    const initiateBuildProcess = () => {
+        if (currentStage === 'BUILDING' && currentAppIdea) {
+            addLogMessage(`[AI Log] Commencing autonomous build for ${currentAppIdea.name}...`);
+            let currentStepIndex = 0;
+            const totalBuildSteps = DETAILED_BUILD_STEPS.length;
+            const progressIncrement = 100 / totalBuildSteps;
+
+            buildProcessInterval = setInterval(() => {
+                currentBuildProgress += progressIncrement;
+                if (currentBuildProgress > 100) currentBuildProgress = 100;
+
+                if (currentStepIndex < totalBuildSteps) {
+                    addLogMessage(`[Build - ${Math.round(currentBuildProgress)}%] ${DETAILED_BUILD_STEPS[currentStepIndex]}`);
+                    currentStepIndex++;
+                }
+                
+                renderBuildingStageUI(); // Re-render building stage UI to show progress
+
+                if (currentBuildProgress >= 100) {
+                    clearInterval(buildProcessInterval);
+                    buildProcessInterval = null;
+                    addLogMessage(`[AI Log] App Blueprint for '${currentAppIdea.name}' is ready!`);
+                    updateApplicationStage('READY');
+                }
+            }, 350); // Interval time for each build step
+        }
+    };
+
+    // --- UI Rendering Functions ---
+
+    // Renders the UI for the IDLE stage
+    const renderIdleStageUI = () => {
+        mainContentElement.innerHTML = `
+            <div class="text-center">
+                <h2 class="text-2xl font-semibold mb-6 text-gray-700 dark:text-gray-300">Autonomous App Factory</h2>
+                <p class="mb-8 text-gray-600 dark:text-gray-400">
+                    Welcome! Click the button below to initiate the AI-driven app invention and building process.
+                    The AI will conceptualize a new application and generate its blueprint.
+                </p>
+                <button id="startInventionButton"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 flex items-center justify-center mx-auto">
+                    ${createIconSVGString('icon-zap', "w-5 h-5 mr-2")} Start Autonomous Invention
+                </button>
+            </div>
+        `;
+        document.getElementById('startInventionButton').addEventListener('click', handleStartInventionProcess);
+        logsSectionElement.style.display = 'none'; // Hide logs in idle stage
+    };
+
+    // Renders the UI for the IDEATION stage
+    const renderIdeationStageUI = () => {
+        mainContentElement.innerHTML = `
+            <div class="text-center p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-600 dark:text-indigo-400">Phase 1: Ideation</h2>
+                <div class="flex justify-center items-center my-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                    <p class="ml-4 text-lg text-gray-700 dark:text-gray-300">AI is brainstorming new app ideas...</p>
+                </div>
+                ${createIconSVGString('icon-lightbulb', "w-12 h-12 mx-auto text-yellow-400 animate-pulse")}
+            </div>
+        `;
+    };
+
+    // Renders the UI for the SPECIFICATION stage
+    const renderSpecificationStageUI = () => {
+        mainContentElement.innerHTML = `
+            <div class="text-center p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-600 dark:text-indigo-400">Phase 2: Specification</h2>
+                 <div class="flex justify-center items-center my-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                    <p class="ml-4 text-lg text-gray-700 dark:text-gray-300">AI is defining core features for '${currentAppIdea?.name}'...</p>
+                </div>
+                ${currentAppIdea ? `
+                    <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-md">
+                        <h3 class="text-xl font-medium text-gray-800 dark:text-gray-200">Concept: ${currentAppIdea.name}</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">${currentAppIdea.description}</p>
+                    </div>
+                ` : ''}
+                ${createIconSVGString('icon-settings', "w-12 h-12 mx-auto text-blue-400 animate-spin-slow mt-6")}
+            </div>
+        `;
+    };
+
+    // Renders the UI for the BUILDING stage
+    const renderBuildingStageUI = () => {
+        mainContentElement.innerHTML = `
+            <div class="p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-center text-indigo-600 dark:text-indigo-400">Phase 3: Autonomous Construction</h2>
+                ${currentAppIdea ? `<p class="text-center text-lg mb-6 text-gray-700 dark:text-gray-300">Building: <span class="font-semibold">${currentAppIdea.name}</span></p>` : ''}
+                <div class="my-8">
+                    <div class="w-full bg-gray-200 rounded-full h-3 dark:bg-gray-700 overflow-hidden">
+                        <div class="bg-indigo-600 h-3 rounded-full transition-all duration-300 ease-linear" style="width: ${currentBuildProgress}%"></div>
+                    </div>
+                    <p class="text-center mt-2 text-sm text-gray-600 dark:text-gray-400">${Math.round(currentBuildProgress)}% Complete</p>
+                </div>
+                ${createIconSVGString('icon-cpu', "w-12 h-12 mx-auto text-green-500 mb-6")}
+            </div>
+        `;
+    };
+
+    // Renders the UI for the READY stage
+    const renderReadyStageUI = () => {
+        if (!currentAppIdea) {
+            mainContentElement.innerHTML = `<p class="text-red-500 p-4">Error: App idea is missing. Please restart.</p>`;
+            return;
+        }
+        mainContentElement.innerHTML = `
+            <div class="p-6">
+                <h2 class="text-3xl font-bold mb-6 text-center text-green-500 dark:text-green-400">
+                    ${createIconSVGString('icon-check-circle', "w-8 h-8 inline mr-2")} App Blueprint Generated!
+                </h2>
+                <div class="bg-white dark:bg-gray-800 shadow-xl rounded-lg p-6">
+                    <div class="flex items-center mb-4">
+                        ${createIconSVGString(currentAppIdea.icon, `w-7 h-7 ${currentAppIdea.iconColor}`)}
+                        <h3 class="text-2xl font-semibold ml-3 text-gray-800 dark:text-gray-200">${currentAppIdea.name}</h3>
+                    </div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Category: ${currentAppIdea.category}</p>
+                    <p class="text-gray-700 dark:text-gray-300 mb-6">${currentAppIdea.description}</p>
+
+                    <h4 class="text-xl font-semibold mb-3 text-gray-700 dark:text-gray-200">Core Features:</h4>
+                    <ul class="space-y-3">
+                        ${selectedAppFeatures.map(feature => `
+                            <li class="flex items-start p-3 bg-gray-50 dark:bg-gray-700 rounded-md shadow-sm">
+                                <div class="flex-shrink-0 text-indigo-500 dark:text-indigo-400 mt-1">
+                                    ${createIconSVGString(feature.icon, "w-5 h-5")}
+                                </div>
+                                <div class="ml-3">
+                                    <p class="font-medium text-gray-900 dark:text-gray-100">${feature.name}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">${feature.description}</p>
+                                </div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                    <div class="mt-8 text-center">
+                        <button id="startInventionButton"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 flex items-center justify-center mx-auto">
+                            ${createIconSVGString('icon-zap', "w-5 h-5 mr-2")} Invent Another App
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('startInventionButton').addEventListener('click', handleStartInventionProcess);
+    };
+    
+    // Main function to render content based on the current stage
+    const renderCurrentStageContent = () => {
+        if (appError) { // Display error message if any
+            mainContentElement.innerHTML = `<p class="text-red-500 bg-red-100 dark:bg-red-900 dark:text-red-300 p-3 rounded-md mb-4">${appError}</p>`;
+        }
+
+        switch (currentStage) {
+            case 'IDLE':
+                renderIdleStageUI();
+                break;
+            case 'IDEATION':
+                renderIdeationStageUI();
+                break;
+            case 'SPECIFICATION':
+                renderSpecificationStageUI();
+                break;
+            case 'BUILDING':
+                renderBuildingStageUI();
+                break;
+            case 'READY':
+                renderReadyStageUI();
+                break;
+            default:
+                mainContentElement.innerHTML = '<p>Error: Unknown application stage.</p>';
+        }
+    };
+
+    // --- Dark Mode Functionality ---
+    const applyDarkModePreference = (isDark) => {
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        // Tailwind CSS handles icon visibility with dark:hidden and dark:inline-block
+    };
+
+    darkModeToggleButton.addEventListener('click', () => {
+        const isDarkModeEnabled = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('darkModePreference', isDarkModeEnabled);
+        applyDarkModePreference(isDarkModeEnabled);
+    });
+
+    // --- Initial Application Load ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Check for saved dark mode preference or system preference
+        const storedDarkMode = localStorage.getItem('darkModePreference');
+        let initialDarkMode = false;
+        if (storedDarkMode !== null) {
+            initialDarkMode = storedDarkMode === 'true';
+        } else {
+            initialDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        applyDarkModePreference(initialDarkMode);
+        
+        updateApplicationStage('IDLE'); // Initialize the application at the IDLE stage
+    });
+
+    </script>
+</body>
+</html>
